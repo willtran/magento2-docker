@@ -1,0 +1,45 @@
+version: "3.3"
+services:
+  web:
+    build: ./docker/web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - type: volume
+        source: m2-sync
+        target: /var/www/magento
+        volume:
+          nocopy: true
+    networks:
+      - m2-net
+    depends_on:
+      - db
+      - redis
+    environment:
+      COMPOSER_ALLOW_SUPERUSER: 1
+  db:
+    build: ./docker/db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: m2_docker
+      MYSQL_DATABASE: m2_docker
+      MYSQL_PASSWORD: m2_docker
+    networks:
+      - m2-net
+    ports:
+      - "3306:3306"
+  redis:
+    restart: always
+    image: redis:3.0
+    networks:
+      - m2-net
+networks:
+  m2-net:
+    driver: "bridge"
+volumes:
+  m2-sync:
+    external: true
+  mysqldata:
+    driver: "local"
